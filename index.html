@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FilexZz | 3D Meme Warehouse</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+
+    <!-- ВАЖЛИВО: Підключаємо файл з даними, який генерує Python -->
+    <!-- Якщо файл ще не згенерований, скрипт нижче це обробить -->
+    <script src="portfolio_data.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        comic: ['Comic Neue', 'cursive'],
+                    },
+                    colors: {
+                        accent: '#ff00ff', 
+                        dark: '#121212',
+                        secondary: '#00ff00'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-dark text-white font-sans overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-dark/90 backdrop-blur border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <span class="text-3xl font-comic font-bold text-white">MEME<span class="text-accent">LORD</span>.</span>
+            <div class="text-xs text-gray-500 font-mono hidden md:block">
+                Status: <span id="status-indicator" class="text-red-500">Connecting...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-32 pb-16 text-center px-4">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6">МОЇ 3D ШЕДЕВРИ</h1>
+        <p class="text-gray-400 text-xl max-w-2xl mx-auto font-comic">
+            Все що я викладаю на Sketchfab, автоматично з'являється тут. Магія коду (і трохи Python).
+        </p>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="py-12 bg-[#0a0a0a] min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Filters -->
+            <div class="flex gap-3 mb-12 overflow-x-auto pb-4 no-scrollbar justify-center" id="filters">
+                <button onclick="renderGallery('all')" class="filter-btn px-6 py-2 bg-white text-black font-bold uppercase rounded-full hover:scale-105 transition-transform">Всі</button>
+                <button onclick="renderGallery('shitpost')" class="filter-btn px-6 py-2 border border-secondary text-secondary font-bold uppercase rounded-full hover:bg-secondary hover:text-black transition-colors">Shitposts</button>
+                <button onclick="renderGallery('chad')" class="filter-btn px-6 py-2 border border-accent text-accent font-bold uppercase rounded-full hover:bg-accent hover:text-white transition-colors">Gigachad</button>
+                <button onclick="renderGallery('cursed')" class="filter-btn px-6 py-2 border border-yellow-500 text-yellow-500 font-bold uppercase rounded-full hover:bg-yellow-500 hover:text-black transition-colors">Cursed</button>
+            </div>
+
+            <!-- Grid Container -->
+            <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Сюди будуть додаватися картки через JS -->
+                <div class="col-span-full text-center py-20">
+                    <div class="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-accent rounded-full" role="status"></div>
+                    <p class="mt-4 text-gray-500">Шукаю файл portfolio_data.js...</p>
+                    <p class="text-xs text-gray-600 mt-2">Запустіть Python скрипт, якщо це вісить довго.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur flex items-center justify-center p-4">
+        <div class="relative w-full max-w-5xl bg-[#1a1a1a] rounded-xl border border-white/10 overflow-hidden flex flex-col md:flex-row">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-white z-10 p-2 bg-black/50 rounded-full hover:bg-accent transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="w-full md:w-2/3 bg-black flex items-center justify-center p-4">
+                <img id="modal-img" src="" class="max-h-[60vh] md:max-h-[80vh] object-contain">
+            </div>
+            
+            <div class="w-full md:w-1/3 p-8 flex flex-col justify-center">
+                <span id="modal-cat" class="text-accent font-bold uppercase text-xs tracking-widest mb-2">CATEGORY</span>
+                <h2 id="modal-title" class="text-3xl font-bold text-white mb-4">Title</h2>
+                <div class="flex gap-4 mb-6 text-sm text-gray-400 font-mono">
+                    <span class="flex items-center gap-1"><i data-lucide="eye" class="w-4 h-4"></i> <span id="modal-views">0</span></span>
+                    <span class="flex items-center gap-1"><i data-lucide="box" class="w-4 h-4"></i> <span id="modal-faces">0</span> tris</span>
+                </div>
+                <p id="modal-desc" class="text-gray-300 mb-8 text-sm leading-relaxed">Description...</p>
+                <a id="modal-link" href="#" target="_blank" class="w-full py-4 bg-secondary hover:bg-green-400 text-black font-bold text-center uppercase tracking-wider rounded transition-all">
+                    Подивитися в 3D
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Функція ініціалізації
+        window.onload = function() {
+            const statusInd = document.getElementById('status-indicator');
+            
+            // Перевіряємо, чи завантажився файл даних
+            if (typeof window.portfolioData !== 'undefined' && Array.isArray(window.portfolioData)) {
+                statusInd.innerText = "Connected (JSON Loaded)";
+                statusInd.classList.replace('text-red-500', 'text-green-500');
+                
+                // Рендеримо галерею
+                renderGallery('all');
+            } else {
+                statusInd.innerText = "Error: Data file missing";
+                document.getElementById('gallery-grid').innerHTML = `
+                    <div class="col-span-full text-center py-10 bg-red-900/20 border border-red-500/50 rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-red-500 mb-2">Дані не знайдено!</h3>
+                        <p class="text-gray-300">Будь ласка, запустіть <code>sketchfab_parser.py</code>, щоб згенерувати файл <code>portfolio_data.js</code>.</p>
+                        <p class="text-gray-400 text-sm mt-4">Переконайтеся, що index.html та portfolio_data.js знаходяться в одній папці.</p>
+                    </div>
+                `;
+            }
+        };
+
+        function renderGallery(filter) {
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = ''; // Очистка
+
+            const data = window.portfolioData;
+            
+            // Фільтрація
+            const filteredData = filter === 'all' 
+                ? data 
+                : data.filter(item => item.category === filter);
+
+            if (filteredData.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-10">Тут поки пусто... Завантаж більше моделей!</div>`;
+                return;
+            }
+
+            filteredData.forEach(item => {
+                // Вибір кольору рамки в залежності від категорії
+                let borderColor = 'border-gray-800 hover:border-white';
+                if(item.category === 'shitpost') borderColor = 'border-gray-800 hover:border-secondary';
+                if(item.category === 'chad') borderColor = 'border-gray-800 hover:border-accent';
+                if(item.category === 'cursed') borderColor = 'border-gray-800 hover:border-yellow-500';
+
+                const card = document.createElement('div');
+                card.className = `group bg-[#111] border-2 ${borderColor} rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer`;
+                card.onclick = () => openModal(item.id);
+
+                card.innerHTML = `
+                    <div class="aspect-square relative overflow-hidden bg-gray-900">
+                        <img src="${item.image}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="${item.title}">
+                        <div class="absolute top-2 right-2 bg-black/80 px-2 py-1 text-xs font-bold text-white uppercase rounded backdrop-blur-sm">
+                            ${item.category}
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold text-white mb-2 truncate group-hover:text-accent transition-colors">${item.title}</h3>
+                        <div class="flex justify-between text-xs text-gray-500 font-mono mt-4">
+                            <span>Views: ${item.viewCount}</span>
+                            <span>Tris: ${item.faceCount}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Modal Logic
+        function openModal(id) {
+            const item = window.portfolioData.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-img').src = item.image;
+            document.getElementById('modal-title').innerText = item.title;
+            document.getElementById('modal-desc').innerText = item.description || "Опис відсутній (автор полінувався).";
+            document.getElementById('modal-views').innerText = item.viewCount;
+            document.getElementById('modal-faces').innerText = item.faceCount;
+            document.getElementById('modal-cat').innerText = item.category;
+            document.getElementById('modal-link').href = item.modelUrl;
+
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Close on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        
+        // Close on outside click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+    </script>
+</body>
+</html>
